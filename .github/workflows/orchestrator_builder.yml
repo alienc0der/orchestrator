@@ -14,7 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Checkout
-        uses: actions/checkout@v3
+        uses: actions/checkout@v4
       - name: Install zip utility
         run: |
           sudo apt update
@@ -25,7 +25,7 @@ jobs:
         uses: crazy-max/ghaction-xgo@v3.0.0
         with:
           xgo_version: latest
-          go_version: 1.22.1
+          go_version: latest
           dest: build
           prefix: orchestrator
           pkg: ./main.go
@@ -42,10 +42,12 @@ jobs:
       - name: Archive files
         run: |
           cd build
-          zip orchestrator-linux-amd64.zip orchestrator-linux-amd64
-          zip orchestrator-linux-arm64.zip orchestrator-linux-arm64
-          rm orchestrator-linux-amd64
-          rm orchestrator-linux-arm64
+          mv orchestrator-linux-amd64 orchestrator
+          zip orchestrator-linux-amd64.zip orchestrator
+          rm orchestrator
+          mv orchestrator-linux-arm64 orchestrator
+          zip orchestrator-linux-arm64.zip orchestrator
+          rm orchestrator
       - name: Generate checksums
         run: |
           cd build
@@ -56,7 +58,7 @@ jobs:
           ORCHESTRATOR=$(cat metadata/version.go | grep Version | awk -F '"' '{print $2}')
           echo "ORCHESTRATOR_VERSION=$ORCHESTRATOR" >> $GITHUB_ENV
       - name: Upload files to a GitHub release
-        uses: svenstaro/upload-release-action@2.5.0
+        uses: svenstaro/upload-release-action@2.9.0
         with:
           repo_token: ${{ secrets.GITHUB_TOKEN }}
           file: build/*
